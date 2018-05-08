@@ -1,8 +1,23 @@
 ---
-
- - name: List previous CSRs
-   shell: "kubectl get csr -o name -n {{ ns }}"
+ - name: List existing CSRs
+   shell: "kubectl get csr -o name -n {{ ns }} | grep {{ pattern }}"
    register: csrs
+   ignore_errors: yes
 
- - name: Debug CSRs
-   msg: "{{ csrs.stdout }}"
+ - name: Register list of CSRs
+   set_fact:
+     csrs_list: "{{ csrs.stdout.split('\n') | select('ne', '') | list }}"
+
+ - name: Check if there is work to do
+   set_fact:
+     has_csrs: "{{  (csrs_list | length) > 0 }}"
+
+ - name: Delete existing CSRs
+   shell: "kubectl delete -n {{ ns }} {{ item }}"
+   with_items: "{{ csrs_list }}"
+   when: has_csrs and action == 'delete'
+
+ - name: Aprove pending CSRs
+   shell: "kubectl approve -n {{ ns }} {{ item }}"
+   with_items: "{{ csrs_list }}"
+   when: has_csrs and action == 'approve'
