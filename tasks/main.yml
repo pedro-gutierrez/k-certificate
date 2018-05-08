@@ -1,8 +1,20 @@
 ---
+  - name: Wait for CSRs
+   shell: "kubectl get csr -o name -n {{ ns }} | grep {{ pattern }}"
+   register: current_csrs
+   until: current_csrs.stdout.find(pattern) != -1
+   retries: "{{ retry.max }}"
+   delay: "{{ retry.delay }}"
+   when: wait_for_csrs
+
  - name: List existing CSRs
    shell: "kubectl get csr -o name -n {{ ns }} | grep {{ pattern }}"
    register: csrs
    ignore_errors: yes
+
+ - name: Debug output
+   debug:
+     msg: "{{ csrs }}"
 
  - name: Register list of CSRs
    set_fact:
@@ -12,12 +24,20 @@
    set_fact:
      has_csrs: "{{  (csrs_list | length) > 0 }}"
 
+ - name: Debug vars
+   debug:
+     msg: "{{ csrs_list }}"
+
+ - name: Debug has work
+   debug:
+     msg: "{{ has_csrs }}"
+
  - name: Delete existing CSRs
    shell: "kubectl delete -n {{ ns }} {{ item }}"
    with_items: "{{ csrs_list }}"
    when: has_csrs and action == 'delete'
 
  - name: Aprove pending CSRs
-   shell: "kubectl approve -n {{ ns }} {{ item }}"
+   shell: "kubectl certificate approve -n {{ ns }} {{ item }}"
    with_items: "{{ csrs_list }}"
    when: has_csrs and action == 'approve'
