@@ -5,13 +5,15 @@ A simple ansible role to manage Kubernetes CSR approvals
 Example Playbook
 ----------------
 
-Deleting existing CSRs
+Deleting CSRs:
 
     - hosts: servers
       roles:
          - role: pedro-gutierrez/k-certificate
            pattern: "some.name"
            action: delete
+           
+Approving CSRs:   
            
          - role: pedro-gutierrez/k-certificate
            pattern: "some.name"
