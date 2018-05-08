@@ -1,0 +1,8 @@
+---
+
+ - name: List previous CSRs
+   shell: "kubectl get csr -o name -n {{ ns }}"
+   register: csrs
+
+ - name: Debug CSRs
+   msg: "{{ csrs.stdout }}"
