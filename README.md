@@ -7,8 +7,6 @@ Example Playbook
 
 Deleting CSRs:
 
-    - hosts: servers
-      roles:
          - role: pedro-gutierrez/k-certificate
            pattern: "some.name"
            action: delete
